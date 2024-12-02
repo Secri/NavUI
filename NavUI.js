@@ -2,7 +2,7 @@
 			const getContainer = document.querySelector('.eltContainer');
 		
 			class Populate {
-				static rep = 79;
+				static rep = 165;
 				constructor( mainCont ) {
 					this.mainCont = mainCont;
 					this.push();
@@ -64,8 +64,7 @@
 					return book;
 				}
 			}	
-			//console.log(Split.formatBook( document.querySelector('.eltContainer'), false) ); -----> test
-			
+						
 			class NavUI {
 			
 				constructor ( container ) {
@@ -75,6 +74,8 @@
 					this.navController();
 					
 				}
+				
+				static maxNavItems = 6; //Rajouter un contrôle pour brider le maxNavItems en fonction du nombre de page du livre !!
 				
 				book = Split.formatBook();
 				direction = 'ltr';
@@ -95,7 +96,7 @@
 					}
 					
 					//On crée les pages courantes
-					if ( Object.keys(this.book).length < 6) {
+					if ( Object.keys(this.book).length <= NavUI.maxNavItems ) {
 						for (let i = 1; i < Object.keys(this.book).length + 1; i++) {
 						
 							if (startingPage === i) {
@@ -106,52 +107,58 @@
 							
 						}
 					} else {
-						//C'est la qu'il faut prendre en compte la direction !
-						//La position du focus est égale à (startingPage % 3) sauf si startingPage % 3 = 0, dans ce cas la position sera 3. On peut en déduire les positions adjancentes.
-						if (direction === 'ltr') {
-							switch (startingPage % 3) {
-								case 1 :
-									this.container.append(this.createNavItem('page', [], [startingPage, true, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage + 1, false, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage + 2, false, false]));
-									break;
-								case 2 :
-									this.container.append(this.createNavItem('page', [], [startingPage - 1, false, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage, true, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage + 1, false, false]));
-									break;
-								case 0 :
-									this.container.append(this.createNavItem('page', [], [startingPage - 2, false, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage - 1, false, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage, true, false]));
-									break;
-							}
-							
-							this.container.append(this.createNavItem('...'));
-							this.container.append(this.createNavItem('page', [], [Object.keys(this.book).length, false, true]));
-							
-						}
-						if (direction === 'rtl') { 
+																	
+						if (direction === 'rtl') {
 							this.container.append(this.createNavItem('page', [], [1, false, true]));
 							this.container.append(this.createNavItem('...'));
-							switch ( ( Object.keys(this.book).length - startingPage ) % 3) {
-								case 2 :
+						}
+						
+						let reachFocus = false;
+						let inc = 0; //Difficile de s'en passer, permet d'identifier la distance entre le début de la plage et la position de startingPage
+						
+						for (let i = 0; i < NavUI.maxNavItems; i++) {
+							
+							
+							if (direction === 'ltr') {
+							
+								if (reachFocus === false && ( startingPage % NavUI.maxNavItems === (i + 1) % NavUI.maxNavItems ) )  {
+									reachFocus = true;
 									this.container.append(this.createNavItem('page', [], [startingPage, true, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage + 1, false, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage + 2, false, false]));
-									break;
-								case 1 :
-									this.container.append(this.createNavItem('page', [], [startingPage - 1, false, false]));
+									console.log('test fw 1st');
+								} else if (reachFocus === false) {
+									this.container.append(this.createNavItem('page', [], [ startingPage - (  NavUI.maxNavItems - (  (i + 1) % NavUI.maxNavItems  ) )  , false, false]));
+									console.log('test false');
+								} else if (reachFocus === true) {
+									this.container.append(this.createNavItem('page', [], [ startingPage + ( (i + 1) - (startingPage % NavUI.maxNavItems) ) , false, false]));
+									console.log('test true');
+								}
+									
+							}
+							
+							if (direction === 'rtl') {
+							
+								if (reachFocus === false && ( startingPage % NavUI.maxNavItems === (Object.keys(this.book).length + (i + 1)) % NavUI.maxNavItems ) )  {
+									reachFocus = true;
 									this.container.append(this.createNavItem('page', [], [startingPage, true, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage + 1, false, false]));
-									break;
-								case 0 :
-									this.container.append(this.createNavItem('page', [], [startingPage - 2, false, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage - 1, false, false]));
-									this.container.append(this.createNavItem('page', [], [startingPage, true ,false]));
-									break;
+									inc++
+									console.log('test back 1st');
+								}  else if (reachFocus === false) {
+									this.container.append(this.createNavItem('page', [], [ startingPage - (  NavUI.maxNavItems - ((Object.keys(this.book).length % NavUI.maxNavItems) - (startingPage % NavUI.maxNavItems) + (i + 1 )) )  , false, false]));
+									inc++
+									console.log('test false');
+								} else if (reachFocus === true) {
+									this.container.append(this.createNavItem('page', [], [ startingPage + ( (i + 1) - inc ) , false, false]));
+									console.log('test true');
+								}
+							
 							}
 						}
+							
+						if (direction === 'ltr') {
+							this.container.append(this.createNavItem('...'));
+							this.container.append(this.createNavItem('page', [], [Object.keys(this.book).length, false, true]));
+						}	
+							
 					}
 					//On finit par le bouton next qui est toujours au même endroit
 					if ( Object.keys(this.book).length > 1 ) {
@@ -201,7 +208,7 @@
 				}
 				displayActivePage( page ) { //Permet de n'afficher que les items de la page qui a le focus
 					
-					console.log(this.book);
+					//console.log(this.book);
 					
 					for (const [key, value] of Object.entries( this.book ) ) {
 						if ( key != page.toString() ) {
@@ -245,7 +252,7 @@
 								currentPos.nextElementSibling.setAttribute('aria-current', 'true');
 								currentPage++;
 								this.displayActivePage(currentPage);
-							} else if ( ( currentPos.nextElementSibling.textContent === '...' || currentPos.nextElementSibling.getAttribute('data-nav') === 'next' ) && Object.keys(this.book).length - parseInt(currentPos.textContent) > 3 ) { //Si il reste toujours au moins 4 éléments après
+							} else if ( ( currentPos.nextElementSibling.textContent === '...' || currentPos.nextElementSibling.getAttribute('data-nav') === 'next' ) && Object.keys(this.book).length - parseInt(currentPos.textContent) > NavUI.maxNavItems ) { 
 								this.resetFocus();
 								currentPage++;
 								this.displayActivePage(currentPage);
@@ -254,7 +261,7 @@
 								} else if (this.direction === 'rtl') {
 									this.createNavUI(currentPage, 'rtl');
 								}
-							} else if ( ( currentPos.nextElementSibling.textContent === '...' || currentPos.nextElementSibling.getAttribute('data-nav') === 'next' ) && Object.keys(this.book).length % parseInt(currentPos.textContent) <= 3 ) {
+							} else if ( ( currentPos.nextElementSibling.textContent === '...' || currentPos.nextElementSibling.getAttribute('data-nav') === 'next' ) && Object.keys(this.book).length % parseInt(currentPos.textContent) <= NavUI.maxNavItems ) {
 								this.resetFocus();
 								currentPage++;
 								this.displayActivePage(currentPage);
@@ -270,7 +277,7 @@
 								currentPos.previousElementSibling.setAttribute('aria-current', 'true');
 								currentPage--;
 								this.displayActivePage(currentPage);
-							} else if ( ( currentPos.previousElementSibling.textContent === '...' || currentPos.previousElementSibling.getAttribute('data-nav') === 'previous' ) && parseInt(currentPos.textContent) - 1 > 3 ) {
+							} else if ( ( currentPos.previousElementSibling.textContent === '...' || currentPos.previousElementSibling.getAttribute('data-nav') === 'previous' ) && parseInt(currentPos.textContent) - 1 > NavUI.maxNavItems ) {
 								this.resetFocus();
 								currentPage--;
 								this.displayActivePage(currentPage);
@@ -280,7 +287,7 @@
 									this.createNavUI(currentPage, 'ltr');
 								}
 								
-							} else if ( ( currentPos.previousElementSibling.textContent === '...' || currentPos.previousElementSibling.getAttribute('data-nav') === 'previous' ) && parseInt(currentPos.textContent) - 1 <= 3 ) {
+							} else if ( ( currentPos.previousElementSibling.textContent === '...' || currentPos.previousElementSibling.getAttribute('data-nav') === 'previous' ) && parseInt(currentPos.textContent) - 1 <= NavUI.maxNavItems ) {
 								this.resetFocus();
 								currentPage--;
 								this.displayActivePage(currentPage);
