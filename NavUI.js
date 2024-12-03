@@ -29,7 +29,6 @@
 			const test = new Populate(getContainer);
 			
 			/********************* DECOUPAGE en BOOK **************************/
-			
 			class NavUI {
 				constructor (
 								   	itemsCont, //the CSS selector of the items container
@@ -41,8 +40,8 @@
 								this.itemsCont     = document.querySelector(itemsCont);
 								this.interfaceCont = document.querySelector(interfaceCont);
 								this.itemsPerPage  = itemsPerPage;
-								this.maxNavItems   = maxNavItems;
-								this.book = this.formatBook(this.itemsCont, this.itemsPerPage); //use formatBook to store the book in this.book[0] - this.book[1] is the total number of items
+								this.book = this.formatBook(this.itemsCont, this.itemsPerPage); //use formatBook to store the book in this.book
+								this.maxNavItems   = this.sanitizeMNI(maxNavItems);
 								this.createNavUI();
 								this.navController();
 					
@@ -50,6 +49,15 @@
 				
 				direction = 'ltr'; //default nav direction is left to right - it's very important since the behavior of remainders is different when you start from the last page
 				
+				sanitizeMNI( maxItems ) { //Avoid overlength of nav items
+					let maxAllowed = 0;
+					if ( maxItems > Object.keys(this.book).length / 4) {//total pages cut to the forth, can be changed
+						maxAllowed = Math.trunc(Object.keys(this.book).length / 4);//assign the integer part
+					} else {
+						maxAllowed = maxItems;
+					}
+					return maxAllowed;
+				}
 				formatBook(target, limit) { //Utility method wich takes 2 params - target has to be CSS selector string - limit has to be an integer
 					let eltCollection = []; //We're gonna stock all the items here
 					for (const child of target.children ) {//Pushing the items
@@ -71,26 +79,24 @@
 							currentPage.push(eltCollection[i - 1]);//else just pushing the current item to populate the page
 						}
 					}
-					return [ book, eltCollection.length]; //return the book and the number of items
+					return book; //return the book and the number of items
 				}
-				
 				createNavUI(startingPage = 1, direction = 'ltr') { //2 params - the page from which to start building the ui - the navigation direction
 					//Empty the nav ui
 					while(this.interfaceCont.firstElementChild) {
 						this.interfaceCont.firstElementChild.remove();
 					}
 					//First we create the previous button
-					if ( Object.keys(this.book[0]).length > 1 ) { //only if the book has more than 1 page
+					if ( Object.keys(this.book).length > 1 ) { //only if the book has more than 1 page
 						if (startingPage === 1) { //the starting page is the first of the book
 							this.interfaceCont.append(this.createNavItem('previous')); //call the createNavItem method to create the previous button and puhsing it within the nav ui - the disablePrevNext argument will get its default value so the button will be disabled
 						} else {
 							this.interfaceCont.append(this.createNavItem('previous', [false, false])); // same as above but this time the button will be activated
 						}
 					}
-					
 					//Populate the ui with the pages
-					if ( Object.keys(this.book[0]).length <= this.maxNavItems ) { //if the number of pages is inferior or equal to the max number of nav items allowed
-						for (let i = 1; i < Object.keys(this.book[0]).length + 1; i++) { //iteration from 1 to the number of pages within the book
+					if ( Object.keys(this.book).length <= this.maxNavItems ) { //if the number of pages is inferior or equal to the max number of nav items allowed
+						for (let i = 1; i < Object.keys(this.book).length + 1; i++) { //iteration from 1 to the number of pages within the book
 							if (startingPage === i) { //if i equal to the starting page 
 								this.interfaceCont.append(this.createNavItem('page', [], [i, true])); //create a page element with focus (using last param of createNavItem method)
 							} else {
@@ -120,12 +126,12 @@
 									
 							}
 							if (direction === 'rtl') {//if the direction is reverse
-								if (reachFocus === false && ( startingPage % this.maxNavItems === (Object.keys(this.book[0]).length + (i + 1)) % this.maxNavItems ) )  { //
+								if (reachFocus === false && ( startingPage % this.maxNavItems === (Object.keys(this.book).length + (i + 1)) % this.maxNavItems ) )  { //
 									reachFocus = true;
 									this.interfaceCont.append(this.createNavItem('page', [], [startingPage, true, false]));
 									inc++
 								}  else if (reachFocus === false) {
-									this.interfaceCont.append(this.createNavItem('page', [], [ startingPage - (  this.maxNavItems - ((Object.keys(this.book[0]).length % this.maxNavItems) - (startingPage % this.maxNavItems) + (i + 1 )) )  , false, false]));
+									this.interfaceCont.append(this.createNavItem('page', [], [ startingPage - (  this.maxNavItems - ((Object.keys(this.book).length % this.maxNavItems) - (startingPage % this.maxNavItems) + (i + 1 )) )  , false, false]));
 									inc++
 								} else if (reachFocus === true) {
 									this.interfaceCont.append(this.createNavItem('page', [], [ startingPage + ( (i + 1) - inc ) , false, false]));
@@ -135,24 +141,21 @@
 							
 							
 						}
-						
 						if (direction === 'ltr') {
 							this.interfaceCont.append(this.createNavItem('...'));
-							this.interfaceCont.append(this.createNavItem('page', [], [Object.keys(this.book[0]).length, false, true]));
+							this.interfaceCont.append(this.createNavItem('page', [], [Object.keys(this.book).length, false, true]));
 						}
 										
 					}
-					
 					//Eventually create the next button
-						if ( Object.keys(this.book[0]).length > 1 ) {
-							if ( startingPage === Object.keys(this.book[0]).length ) {
-								this.interfaceCont.append(this.createNavItem('next', [false, true]));
-							} else {
-								this.interfaceCont.append(this.createNavItem('next'));
-							}
+					if ( Object.keys(this.book).length > 1 ) {
+						if ( startingPage === Object.keys(this.book).length ) {
+							this.interfaceCont.append(this.createNavItem('next', [false, true]));
+						} else {
+							this.interfaceCont.append(this.createNavItem('next'));
 						}
+					}
 				}
-				
 				createNavItem( type, disablePrevNext = [true, false], pageNumber = [1, true, false]) { // type can be 'previous', 'next', 'page', '...' | disableNextPrev is an array of boolean, if true the prev /next button will be disabled respectively | pageNumber is the page that should be displayed
 					let button = document.createElement('button'); //create the HTML element
 					switch (type) { //switch the type argument
@@ -186,8 +189,8 @@
 					return button;
 				}
 				displayActivePage( page ) { //Permet de n'afficher que les items de la page qui a le focus
-					console.log(this.book[0]); //testing purpose
-					for (const [key, value] of Object.entries( this.book[0] ) ) {
+					console.log(this.book); //testing purpose
+					for (const [key, value] of Object.entries( this.book ) ) {
 						if ( key != page.toString() ) {
 							for (const elt of value) {
 								elt.style.display = 'none';
@@ -230,7 +233,7 @@
 								this.createNavUI(currentPage, 'ltr');//We generate a new UI with the default direction
 								this.direction = 'ltr';//we store the current direction
 							}
-							if (parseInt(event.target.textContent) === Object.keys(this.book[0]).length && event.target.getAttribute('data-fast') === 'true') {//if a fast travel is initiated to the last page
+							if (parseInt(event.target.textContent) === Object.keys(this.book).length && event.target.getAttribute('data-fast') === 'true') {//if a fast travel is initiated to the last page
 								this.createNavUI(currentPage, 'rtl');//We generate a new UI with the reverse direction
 								this.direction = 'rtl';//we store the current direction
 							}
@@ -242,7 +245,7 @@
 								currentPos.nextElementSibling.setAttribute('aria-current', 'true');//add focus to the next element
 								currentPage++;//change page
 								this.displayActivePage(currentPage);//dislay the content of the next page
-							} else if ( ( currentPos.nextElementSibling.textContent === '...' || currentPos.nextElementSibling.getAttribute('data-nav') === 'next' ) && Object.keys(this.book[0]).length - parseInt(currentPos.textContent) > this.maxNavItems ) { //if the next element is neither a ... nor a next AND there is more than maxNavItems left in the book
+							} else if ( ( currentPos.nextElementSibling.textContent === '...' || currentPos.nextElementSibling.getAttribute('data-nav') === 'next' ) && Object.keys(this.book).length - parseInt(currentPos.textContent) > this.maxNavItems ) { //if the next element is neither a ... nor a next AND there is more than maxNavItems left in the book
 								this.resetFocus();
 								currentPage++;
 								this.displayActivePage(currentPage);
@@ -251,7 +254,7 @@
 								} else if (this.direction === 'rtl') {
 									this.createNavUI(currentPage, 'rtl');//generate the UI in the proper direction
 								}
-							} else if ( ( currentPos.nextElementSibling.textContent === '...' || currentPos.nextElementSibling.getAttribute('data-nav') === 'next' ) && Object.keys(this.book[0]).length % parseInt(currentPos.textContent) <= this.maxNavItems ) {//if the next element is neither a ... nor a next AND there is not enough items left
+							} else if ( ( currentPos.nextElementSibling.textContent === '...' || currentPos.nextElementSibling.getAttribute('data-nav') === 'next' ) && Object.keys(this.book).length % parseInt(currentPos.textContent) <= this.maxNavItems ) {//if the next element is neither a ... nor a next AND there is not enough items left
 								this.resetFocus();
 								currentPage++;
 								this.displayActivePage(currentPage);
@@ -260,7 +263,6 @@
 							}
 						}
 						if (event.target.getAttribute('data-nav') === 'previous' ) {//if targeted element is a previous button
-													
 							if (currentPos.previousElementSibling.getAttribute('data-nav') === 'page') {//we want to know if the previous button is a page one
 								currentPos.removeAttribute('aria-current');//removing the focus of the focused element
 								currentPos.previousElementSibling.setAttribute('aria-current', 'true');//add focus to the previous element
@@ -275,7 +277,6 @@
 								} else if (this.direction === 'ltr') {
 									this.createNavUI(currentPage, 'ltr');//generate the UI in the proper direction
 								}
-								
 							} else if ( ( currentPos.previousElementSibling.textContent === '...' || currentPos.previousElementSibling.getAttribute('data-nav') === 'previous' ) && parseInt(currentPos.textContent) - 1 <= this.maxNavItems ) { //if the previous element is neither a ... or a previous AND there is not enough items left
 								this.resetFocus();
 								currentPage--;
@@ -286,14 +287,12 @@
 						}
 						//Handle the deactivation of prev and next buttons
 						currentPos = this.getFocusedElt();
-						
 						if (parseInt(currentPos.textContent) > 1) {
 							this.interfaceCont.firstElementChild.removeAttribute('disabled');
 						} else {
 							this.interfaceCont.firstElementChild.setAttribute('disabled', 'true');
 						}
-						
-						if (parseInt(currentPos.textContent) === Object.keys(this.book[0]).length) {
+						if (parseInt(currentPos.textContent) === Object.keys(this.book).length) {
 							this.interfaceCont.lastElementChild.setAttribute('disabled', 'true');
 						} else {
 							this.interfaceCont.lastElementChild.removeAttribute('disabled');
@@ -305,4 +304,4 @@
 				
 			}
 				
-			const navigation = new NavUI( '.eltContainer', '.pageNav', 5, 5 );
+			const navigation = new NavUI( '.eltContainer', '.pageNav', 5, 5 ); //creating an UI with 5 max element per page and 6 page elements in the nav UI
