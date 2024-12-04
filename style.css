@@ -1,1 +1,23 @@
-
+.eltContainer > div {
+	padding:10px
+}
+.eltContainer > div:nth-child(odd) {
+	background-color:#ddd
+}
+.pageNav, .pageNav button {
+	display:flex;
+	justify-content:center;
+	align-items:center
+}
+.pageNav button {
+	height:50px;
+	width:50px;
+	border-radius:50%;
+	border: 1px solid black;
+	cursor:pointer;
+	margin:0 10px
+}
+.pageNav button[aria-current="true"] {
+	background:black;
+	color:white
+}
