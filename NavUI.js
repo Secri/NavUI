@@ -10,11 +10,11 @@
 				createElt() {
 					let item = document.createElement('div');
 					let itemTitle = document.createElement('h4');
-					itemTitle.textContent = 'Ceci est un élément';
+					itemTitle.textContent = 'This is an element';
 					let itemDesc = document.createElement('p');
-					itemDesc.textContent = 'Ceci est une description de cet élément';
+					itemDesc.textContent = 'This is the element description';
 					let itemButton = document.createElement('h4');
-					itemButton.textContent = 'Cliquez ici';
+					itemButton.textContent = 'Click here';
 					item.append(itemTitle);
 					item.append(itemDesc);
 					item.append(itemButton);
