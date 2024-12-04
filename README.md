@@ -1,2 +1,3 @@
 # NavUI
-Javascript navigation tool
+Lightweight javascript navigation tool.
+
