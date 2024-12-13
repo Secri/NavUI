@@ -10,11 +10,11 @@
 				createElt() {
 					let item = document.createElement('div');
 					let itemTitle = document.createElement('h4');
-					itemTitle.textContent = 'This is an element';
+					itemTitle.textContent = 'Ceci est un élément';
 					let itemDesc = document.createElement('p');
-					itemDesc.textContent = 'This is the element description';
+					itemDesc.textContent = 'Ceci est une description de cet élément';
 					let itemButton = document.createElement('h4');
-					itemButton.textContent = 'Click here';
+					itemButton.textContent = 'Cliquez ici';
 					item.append(itemTitle);
 					item.append(itemDesc);
 					item.append(itemButton);
@@ -28,7 +28,7 @@
 			}
 			const test = new Populate(getContainer);
 			
-			/********************* DECOUPAGE en BOOK **************************/
+			/********************* THE NAV UI CLASS **************************/
 			class NavUI {
 				constructor (
 								   	itemsCont, //the CSS selector of the items container
@@ -86,12 +86,20 @@
 					while(this.interfaceCont.firstElementChild) {
 						this.interfaceCont.firstElementChild.remove();
 					}
-					//First we create the previous button
+					//create the jumpleft button
+					if ( Object.keys(this.book).length / this.maxNavItems > 2 ) { //Only if there is enough pages regarding to the size of the nav UI
+						if (this.maxNavItems >= startingPage) {
+							this.interfaceCont.append(this.createNavItem('jumpleft'));
+						} else {
+							this.interfaceCont.append(this.createNavItem('jumpleft', [ [], [false, false] ]));
+						}
+					}
+					//create the previous button
 					if ( Object.keys(this.book).length > 1 ) { //only if the book has more than 1 page
-						if (startingPage === 1) { //the starting page is the first of the book
+						if (startingPage === 1) { //if the starting page is the first of the book
 							this.interfaceCont.append(this.createNavItem('previous')); //call the createNavItem method to create the previous button and puhsing it within the nav ui - the disablePrevNext argument will get its default value so the button will be disabled
 						} else {
-							this.interfaceCont.append(this.createNavItem('previous', [false, false])); // same as above but this time the button will be activated
+							this.interfaceCont.append(this.createNavItem('previous', [ [false, false], [] ] )); // same as above but this time the button will be activated
 						}
 					}
 					//Populate the ui with the pages
@@ -109,65 +117,80 @@
 							this.interfaceCont.append(this.createNavItem('page', [], [1, false, true]));
 							this.interfaceCont.append(this.createNavItem('...'));
 						}
-						
-						let reachFocus = false; //We use this to know when the starting page is reached on the default direction
 						let inc = 0; //We use this to know when the starting page is reached on the reverse direction
-						
-						for (let i = 0; i < this.maxNavItems; i++) { //we iterate X times where X is the number of navigation items allowed
-							if (direction === 'ltr') { //if direction is default
-								if (reachFocus === false && ( startingPage % this.maxNavItems === (i + 1) % this.maxNavItems ) )  { //if this condition is true then we are sure that we have identified the position of the starting page within the nav UI
-									reachFocus = true; //Switch to indicate that the startingPage has been located
-									this.interfaceCont.append(this.createNavItem('page', [], [startingPage, true, false])); //push the starting page at the right position within the UI and set the focus on
-								} else if (reachFocus === false) {//here if reachFocus is false as well as the previous condition then we know that these pages are located before the starting page
-									this.interfaceCont.append(this.createNavItem('page', [], [ startingPage - (  this.maxNavItems - (  (i + 1) % this.maxNavItems  ) )  , false, false])); //pushing the pages within the UI and using remainders to assign the correct pages numbers
-								} else if (reachFocus === true) {//the if reachFocus is true then we know these pages are located after the starting page
-									this.interfaceCont.append(this.createNavItem('page', [], [ startingPage + ( (i + 1) - (startingPage % this.maxNavItems) ) , false, false])); //pushing the pages within the UI and using remainders to assign the correct pages numbers
+						for (let i = 0; i < this.maxNavItems; i++) { //we iterate a first time to check the currentPage position
+							
+							if (direction === 'ltr') {
+								if ( ( startingPage % this.maxNavItems === (i + 1) % this.maxNavItems ) )  {//if this condition is true we have reached the starting page regarding to the direction
+									inc++
+									break;//break the loop to get the position
+								} else {
+									inc++;
 								}
-									
 							}
 							if (direction === 'rtl') {//if the direction is reverse
-								if (reachFocus === false && ( startingPage % this.maxNavItems === (Object.keys(this.book).length + (i + 1)) % this.maxNavItems ) )  { //
-									reachFocus = true;
-									this.interfaceCont.append(this.createNavItem('page', [], [startingPage, true, false]));
+								if ( ( startingPage % this.maxNavItems === (Object.keys(this.book).length + (i + 1)) % this.maxNavItems ) )  {//if this condition is true we have reached the starting page regarding to the direction
 									inc++
-								}  else if (reachFocus === false) {
-									this.interfaceCont.append(this.createNavItem('page', [], [ startingPage - (  this.maxNavItems - ((Object.keys(this.book).length % this.maxNavItems) - (startingPage % this.maxNavItems) + (i + 1 )) )  , false, false]));
-									inc++
-								} else if (reachFocus === true) {
-									this.interfaceCont.append(this.createNavItem('page', [], [ startingPage + ( (i + 1) - inc ) , false, false]));
+									break;//break the loop to get the position
+								} else {
+									inc++;
 								}
-							
 							}
-							
-							
 						}
-						if (direction === 'ltr') {
+						for (let i = 0; i < this.maxNavItems; i++) {//then we use the currentPage position (inc) to create the UI nav elements
+							if ( (i + 1) < inc ) {
+								this.interfaceCont.append(this.createNavItem('page', [], [ startingPage - inc + (i + 1), false, false ]));
+							} else if ( (i + 1) === inc ) {
+								this.interfaceCont.append(this.createNavItem('page', [], [startingPage, true, false])); 
+							} else {
+								this.interfaceCont.append(this.createNavItem('page', [], [ startingPage + ((i + 1) - inc), false, false ]));
+							}
+						}
+						if (direction === 'ltr') { //if the nav direction param is 'ltr' (default nav) then we add the lookahead func on the right
 							this.interfaceCont.append(this.createNavItem('...'));
 							this.interfaceCont.append(this.createNavItem('page', [], [Object.keys(this.book).length, false, true]));
 						}
-										
 					}
-					//Eventually create the next button
+					//create the next button
 					if ( Object.keys(this.book).length > 1 ) {
 						if ( startingPage === Object.keys(this.book).length ) {
-							this.interfaceCont.append(this.createNavItem('next', [false, true]));
+							this.interfaceCont.append(this.createNavItem('next', [ [false, true], [] ] ));
 						} else {
 							this.interfaceCont.append(this.createNavItem('next'));
 						}
 					}
+					//create the jump right button
+					if ( Object.keys(this.book).length / this.maxNavItems > 2 ) { //Only if there is enough pages regarding to the size of the nav UI
+						if (startingPage + this.maxNavItems > Object.keys(this.book).length) {
+							this.interfaceCont.append(this.createNavItem('jumpright', [ [], [false, true] ]));
+						} else {
+							this.interfaceCont.append(this.createNavItem('jumpright'));
+						}
+					}
 				}
-				createNavItem( type, disablePrevNext = [true, false], pageNumber = [1, true, false]) { // type can be 'previous', 'next', 'page', '...' | disableNextPrev is an array of boolean, if true the prev /next button will be disabled respectively | pageNumber is the page that should be displayed
+				createNavItem( type, disablePrevNext = [ [true, false], [true, false] ], pageNumber = [1, true, false]) { // type can be 'previous', 'next', 'page', '...' | disableNextPrev is an array of boolean, if true the prev /next button will be disabled respectively | pageNumber is the page that should be displayed
 					let button = document.createElement('button'); //create the HTML element
 					switch (type) { //switch the type argument
 						case 'previous' :
 							button.innerHTML = '&lsaquo;'; //this is facultative, could also use CSS to add a previous icon
 							button.setAttribute('data-nav', 'previous');//add a custom data-nav attribute to the HTML element
-							if (disablePrevNext[0] === true) { button.setAttribute('disabled', 'true'); } //disable if needed
+							if (disablePrevNext[0][0] === true) { button.setAttribute('disabled', 'true'); } //disable if needed
 							break;
+						case 'jumpleft' :
+							button.innerHTML = '&laquo;'; //this is facultative, could also use CSS to add a previous icon
+							button.setAttribute('data-nav', 'jumpleft');//add a custom data-nav attribute to the HTML element
+							if(disablePrevNext[1][0] === true) { button.setAttribute('disabled', 'true'); } //on met 2 tableaux dans un tableau pour gérer les deux types de boutons prev et next !
+							break;
+						case 'jumpright' :
+							button.innerHTML = '&raquo;'; //this is facultative, could also use CSS to add a previous icon
+							button.setAttribute('data-nav', 'jumpright');//add a custom data-nav attribute to the HTML element
+							if(disablePrevNext[1][1] === true) { button.setAttribute('disabled', 'true'); } //on met 2 tableaux dans un tableau pour gérer les deux types de boutons prev et next ! [ [true, false], [false, false] ] par défaut
+							break;
+						/*************************************************/
 						case 'next' : 
 							button.innerHTML = '&rsaquo;'; //this is facultative, could also use CSS to add a next icon
 							button.setAttribute('data-nav', 'next');//add a custom data-nav attribute to the HTML element
-							if (disablePrevNext[1] === true) { button.setAttribute('disabled', 'true'); };//disable if needed
+							if (disablePrevNext[0][1] === true) { button.setAttribute('disabled', 'true'); };//disable if needed
 							break;
 						case '...' :
 							button.textContent = '...';//use to separate regular nav and fast nav
@@ -219,9 +242,6 @@
 				navController() {
 					let currentPage = 1; //set the first page to 1
 					this.displayActivePage(1);//display content of page 1
-					/*********** IMPROVEMENT*************/
-					//Faire en sorte qu'on puisse choisir la page à charger et un item de la page à highlight
-					/*************************************/
 					document.addEventListener('click', (event) => { //Listen to the click on the ui
 						let currentPos = this.getFocusedElt(); //Get back the element with focus
 						if (event.target.getAttribute('data-nav') === 'page' ) {//if targeted element is a page button
@@ -268,34 +288,70 @@
 								currentPos.previousElementSibling.setAttribute('aria-current', 'true');//add focus to the previous element
 								currentPage--;//going backward through the pages and store the position
 								this.displayActivePage(currentPage);
-							} else if ( ( currentPos.previousElementSibling.textContent === '...' || currentPos.previousElementSibling.getAttribute('data-nav') === 'previous' ) && parseInt(currentPos.textContent) - 1 > this.maxNavItems ) { //if the previous element is neither a ... or a previous AND there is more than maxNavItems left in the book (regarding to the direction)
+							} else if ( ( currentPos.previousElementSibling.textContent === '...' || currentPos.previousElementSibling.getAttribute('data-nav') === 'previous' ) && parseInt(currentPos.textContent) - 1 > this.maxNavItems ) { //if the previous element is neither a ... nor a previous AND there is more than maxNavItems left in the book (regarding to the direction)
 								this.resetFocus();
 								currentPage--;
+								this.displayActivePage(currentPage);//dislay the content of the previous page
+								if (this.direction === 'rtl') {
+									this.createNavUI(currentPage, 'rtl');//generate the UI in the proper direction
+								} else if (this.direction === 'ltr') {
+									this.createNavUI(currentPage, 'ltr');//generate the UI in the proper direction
+								}
+							} else if ( ( currentPos.previousElementSibling.textContent === '...' || currentPos.previousElementSibling.getAttribute('data-nav') === 'previous' ) && parseInt(currentPos.textContent) - 1 <= this.maxNavItems ) { //if the previous element is neither a ... nor a previous AND there is not enough items left
+								this.resetFocus();
+								currentPage--;
+								this.displayActivePage(currentPage);
+								this.createNavUI(currentPage, 'ltr');//generate a ltr UI because we reached the begining of the book
+								this.direction = 'ltr';//store the current direction
+							}
+						}
+						if (event.target.getAttribute('data-nav') === 'jumpright') {
+							if (Object.keys(this.book).length - this.maxNavItems >= parseInt(currentPos.textContent) + this.maxNavItems ) {//makes sure that there are enough elements left to jump forward
+								this.resetFocus();
+								currentPage = currentPage + this.maxNavItems;//we jump forward
+								this.displayActivePage(currentPage);
+								if (this.direction === 'ltr') {
+									this.createNavUI(currentPage, 'ltr');//generate the UI in the proper direction
+								} else if (this.direction === 'rtl') {
+									this.createNavUI(currentPage, 'rtl');//generate the UI in the proper direction
+								}
+							} else { //if not then we have to swap the direction when creating the nav UI
+								this.resetFocus();
+								currentPage = currentPage + this.maxNavItems;
+								this.displayActivePage(currentPage);
+								this.createNavUI(currentPage, 'rtl');
+								this.direction = 'rtl';//store the current direction
+							}
+						}
+						if (event.target.getAttribute('data-nav') === 'jumpleft')  {
+							if (parseInt(currentPos.textContent) - this.maxNavItems >= this.maxNavItems) {//makes sure that there are enough elements left to jump back
+								this.resetFocus();
+								currentPage = currentPage - this.maxNavItems;//we jump back
 								this.displayActivePage(currentPage);
 								if (this.direction === 'rtl') {
 									this.createNavUI(currentPage, 'rtl');//generate the UI in the proper direction
 								} else if (this.direction === 'ltr') {
 									this.createNavUI(currentPage, 'ltr');//generate the UI in the proper direction
 								}
-							} else if ( ( currentPos.previousElementSibling.textContent === '...' || currentPos.previousElementSibling.getAttribute('data-nav') === 'previous' ) && parseInt(currentPos.textContent) - 1 <= this.maxNavItems ) { //if the previous element is neither a ... or a previous AND there is not enough items left
+							} else { //if not then we have to swap the direction when creating the nav UI
 								this.resetFocus();
-								currentPage--;
+								currentPage = currentPage - this.maxNavItems;
 								this.displayActivePage(currentPage);
-								this.createNavUI(currentPage, 'ltr');//generate a ltr UI because we reached the begining of the book
+								this.createNavUI(currentPage, 'ltr');//generate the UI in the proper direction
 								this.direction = 'ltr';//store the current direction once again
 							}
 						}
 						//Handle the deactivation of prev and next buttons
 						currentPos = this.getFocusedElt();
 						if (parseInt(currentPos.textContent) > 1) {
-							this.interfaceCont.firstElementChild.removeAttribute('disabled');
+							this.interfaceCont.querySelector('[data-nav="previous"]').removeAttribute('disabled');
 						} else {
-							this.interfaceCont.firstElementChild.setAttribute('disabled', 'true');
+							this.interfaceCont.querySelector('[data-nav="previous"]').setAttribute('disabled', 'true');
 						}
 						if (parseInt(currentPos.textContent) === Object.keys(this.book).length) {
-							this.interfaceCont.lastElementChild.setAttribute('disabled', 'true');
+							this.interfaceCont.querySelector('[data-nav="next"]').setAttribute('disabled', 'true');
 						} else {
-							this.interfaceCont.lastElementChild.removeAttribute('disabled');
+							this.interfaceCont.querySelector('[data-nav="next"]').removeAttribute('disabled');
 						}
 						
 					});
@@ -303,5 +359,5 @@
 				}
 				
 			}
-				
-			const navigation = new NavUI( '.eltContainer', '.pageNav', 5, 5 ); //creating an UI with 5 max element per page and 6 page elements in the nav UI
+			//How to use : just instanciate the class and pass the HTML container for elements and the HTML container for the UI as arguments	
+			const navigation = new NavUI( '.eltContainer', '.pageNav', 5, 5 ); //creating an UI with X max elements per page and X page elements in the nav UI
