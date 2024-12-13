@@ -212,7 +212,6 @@
 					return button;
 				}
 				displayActivePage( page ) { //Permet de n'afficher que les items de la page qui a le focus
-					console.log(this.book); //testing purpose
 					for (const [key, value] of Object.entries( this.book ) ) {
 						if ( key != page.toString() ) {
 							for (const elt of value) {
