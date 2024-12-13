@@ -5,9 +5,9 @@ Divides a nodelist of html items into sereral differents pages of n items throug
 Choose how many pages button you want to display.
 
 ## Functions
-Jump forward /backward buttons.
-Next /Previous buttons.
-Clicking on a page displays its content.
+1. Jump forward /backward buttons.
+2. Next /Previous buttons.
+3. Clicking on a page displays its content.
 
 ## How to use
 Load NavUI.js
