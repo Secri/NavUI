@@ -52,7 +52,7 @@
 				sanitizeMNI( maxItems ) { //Avoid overlength of nav items
 					let maxAllowed = 0;
 					if ( maxItems > Object.keys(this.book).length / 4) {//total pages cut to the forth, can be changed
-						maxAllowed = Math.trunc(Object.keys(this.book).length / 4);//assign the integer part
+						maxAllowed = Math.trunc(Object.keys(this.book).length / 2);//assign the integer part
 					} else {
 						maxAllowed = maxItems;
 					}
