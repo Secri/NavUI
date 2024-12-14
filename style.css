@@ -1,9 +1,11 @@
+/*********** RAW STYLING OF ITEMS ***********/
 .eltContainer > div {
 	padding:10px
 }
 .eltContainer > div:nth-child(odd) {
 	background-color:#ddd
 }
+/************ RAW STYLING OF THE NAV UI ***************/
 .pageNav, .pageNav button {
 	display:flex;
 	justify-content:center;
