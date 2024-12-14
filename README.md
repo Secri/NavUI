@@ -1,7 +1,7 @@
 # NavUI
 ## Fast Description
 Lightweight javascript pagination tool.
-Divides a nodelist of html items into sereral differents pages of n items through which you can navigate.
+Divides a nodelist of HTML items into sereral differents pages of n items through which you can navigate.
 Choose how many pages button you want to display.
 
 ## Functions
