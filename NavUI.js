@@ -348,11 +348,8 @@ class NavUI {
 					} else {
 						this.interfaceCont.querySelector('[data-nav="next"]').removeAttribute('disabled');
 					}
-						
 			});
-					
 	}
-				
 }
 //How to use : just instanciate the class and pass the HTML container for elements and the HTML container for the UI as arguments	
 const navigation = new NavUI( '.eltContainer', '.pageNav', 5, 5 ); //creating an UI with X max elements per page and X page elements in the nav UI
