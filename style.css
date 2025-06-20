@@ -23,3 +23,7 @@
 	background:black;
 	color:white
 }
+.pageNav button[disabled="true"] {
+	opacity:0.6;
+	cursor: not-allowed
+}
